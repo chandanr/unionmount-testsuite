@@ -37,6 +37,13 @@ def set_up(ctx):
         except RuntimeError:
             pass
 
+        try:
+            while system("grep 'backup " + cfg.backup_mntroot() + "' /proc/mounts >/dev/null" +
+                         " && umount " + cfg.backup_mntroot()):
+                pass
+        except RuntimeError:
+            pass
+
     if cfg.testing_overlayfs() or cfg.testing_snapshot():
         try:
             while system("grep 'overlay " + mnt + "' /proc/mounts >/dev/null" +
@@ -177,3 +184,12 @@ def set_up(ctx):
     # The mount has to be read-only for us to make use of it
     system("mount -o remount,ro " + lower_mntroot)
     ctx.note_lower_fs(lowerdir)
+
+    if cfg.testing_snapshot():
+        system("mount -t tmpfs backup " + cfg.backup_mntroot())
+
+        # Systemd has weird ideas about things
+        system("mount --make-private " + cfg.backup_mntroot())
+
+        # Create a backup copy of lower layer
+        system("cp -a " + lowerdir + " " + cfg.backup_mntroot() + "/")

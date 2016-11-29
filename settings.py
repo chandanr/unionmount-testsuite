@@ -32,6 +32,7 @@ class config:
         self.__upper_mntroot = None
         self.__union_mntroot = None
         self.__snapshot_mntroot = None
+        self.__backup_mntroot = None
         self.__verbose = False
         self.__verify = False
         self.__samefs = False
@@ -71,6 +72,7 @@ class config:
         self.__upper_mntroot = "/upper"
         self.__union_mntroot = "/mnt"
         self.__snapshot_mntroot = "/snapshot"
+        self.__backup_mntroot = "/backup"
         self.__testing_snapshot = True
         self.__testing_none = True
         self.__samefs = True
@@ -85,6 +87,8 @@ class config:
         return self.__union_mntroot
     def snapshot_mntroot(self):
         return self.__snapshot_mntroot
+    def backup_mntroot(self):
+        return self.__backup_mntroot
     def lowerdir(self):
         return self.__lower_mntroot + "/a"
     def testdir(self):
