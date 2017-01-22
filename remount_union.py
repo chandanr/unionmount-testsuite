@@ -48,8 +48,8 @@ def remount_union(ctx, rotate_upper=False):
             system(cmd)
             write_file("/dev/kmsg", cmd);
             # This is the snapshot mount where tests are run - remount it to use the new curr_snapshot
-            system("mount -t snapshot snapshot " + union_mntroot +
-                    " -oremount,upperdir=" + lower_mntroot + ",snapshot=" + curr_snapshot)
+            system("mount -t snapshot snapshot " + union_mntroot + " -oremount,ro,snapshot=" + curr_snapshot)
+            system("mount -t snapshot snapshot " + union_mntroot + " -oremount,rw")
             # This is a snapshot of beginning of test composed of all the incremental
             # layers since backup base to comapre with full backup at the end of the test:
             cmd = "mount -t overlay overlay " + snapshot_mntroot + "/incremental/" + " -oro,lowerdir=" + mid_layers + curr_snapshot
