@@ -14,7 +14,7 @@ def show_format(why):
     if why:
         print(why)
     print("Format:")
-    print("\t", sys.argv[0], "<--no|--um|--<sn|ov>[=<maxlayers>]> [--samefs] [<--recycle|--remount>] [--ts=<0|1>] [-v] [<test-name>+]")
+    print("\t", sys.argv[0], "<--no|--um|--<sn|ov>[=<maxlayers>]> [--samefs] [--verify] [<--recycle|--remount>] [--ts=<0|1>] [-v] [<test-name>+]")
     print("\t", sys.argv[0], "<--no|--um|--sn|--ov> [--samefs] --set-up")
     print("\t", sys.argv[0], "--open-file <file> [-acdertvw] [-W <data>] [-R <data>] [-B] [-E <err>]")
     print("\t", sys.argv[0], "--<fsop> <file> [<args>*] [-aLlv] [-R <content>] [-B] [-E <err>]")
@@ -133,6 +133,7 @@ if len(args) > 0 and args[0] == "--set-up":
 
 
 termslash = "0"
+verify_snapshot = False
 while len(args) > 0 and args[0].startswith("-"):
     if args[0] == "-v":
         cfg.set_verbose()
@@ -146,6 +147,8 @@ while len(args) > 0 and args[0].startswith("-"):
     elif args[0] == "--recycle":
         recycle_list = [ True ]
         remount = False
+    elif args[0] == "--verify":
+        verify_snapshot = True
     else:
         show_format("Invalid flag " + args[0])
     args = args[1:]
@@ -267,7 +270,7 @@ for test in tests:
             print(te)
             sys.exit(1)
 
-        if cfg.testing_snapshot():
+        if cfg.testing_snapshot() and verify_snapshot:
             # verify snapshot integrity
             system("diff -qr --no-dereference " + cfg.backup_mntroot() + "/full/a " + cfg.snapshot_mntroot() + "/incremental/a")
             remount_union(ctx)
