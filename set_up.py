@@ -191,9 +191,8 @@ def set_up(ctx):
         system("mount --make-private " + cfg.backup_mntroot())
 
         os.mkdir(cfg.backup_mntroot() + "/full")
-        os.mkdir(cfg.backup_mntroot() + "/base")
+        os.mkdir(cfg.backup_mntroot() + "/full/0")
         os.mkdir(cfg.snapshot_mntroot())
-        os.mkdir(cfg.snapshot_mntroot() + "/incremental")
 
         # Create a backup copy of lower layer
-        system("cp -a " + lowerdir + " " + cfg.backup_mntroot() + "/full/")
+        system("cp -a " + lowerdir + " " + cfg.backup_mntroot() + "/full/0/")

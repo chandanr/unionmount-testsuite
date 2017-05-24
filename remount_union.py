@@ -7,6 +7,7 @@ def remount_union(ctx, rotate_upper=False):
     snapshot_mntroot = cfg.snapshot_mntroot()
 
     if cfg.testing_snapshot():
+        # Unmount old snapshots
         try:
             system("umount " + cfg.snapshot_mntroot() + "/*/ 2>/dev/null")
         except RuntimeError:
@@ -21,12 +22,8 @@ def remount_union(ctx, rotate_upper=False):
 
         upper_mntroot = cfg.upper_mntroot()
         if rotate_upper and ctx.have_more_layers():
-            # current upper is added to head of overlay mid layers or
-            # to tail of snapshot mid layers
-            if cfg.testing_snapshot():
-                mid_layers = ctx.mid_layers() + ctx.upper_layer() + ":"
-            else:
-                mid_layers = ctx.upper_layer() + ":" + ctx.mid_layers()
+            # current upper is added to head of overlay mid layers
+            mid_layers = ctx.upper_layer() + ":" + ctx.mid_layers()
             upperdir = upper_mntroot + "/" + ctx.next_layer()
             workdir = upper_mntroot + "/work" + ctx.curr_layer()
             os.mkdir(upperdir)
@@ -41,7 +38,11 @@ def remount_union(ctx, rotate_upper=False):
             curr_snapshot = snapshot_mntroot + "/" + ctx.curr_layer()
             try:
                 os.mkdir(curr_snapshot)
+                os.mkdir(cfg.backup_mntroot() + "/full/" + ctx.curr_layer())
+                # Create a backup copy of lower layer for comparing with snapshotat the end of the test run
+                system("cp -a " + lower_mntroot + "/a " + cfg.backup_mntroot() + "/full/" + ctx.curr_layer() + "/")
             except OSError:
+                # Remounting an existing curr_snapshot - don't overwrite the backup copy
                 pass
 
             # This is the latest snapshot of lower_mntroot:
@@ -55,12 +56,18 @@ def remount_union(ctx, rotate_upper=False):
             else:
                 system("mount -t snapshot snapshot " + union_mntroot +
                         " -oupperdir=" + lower_mntroot + ",snapshot=" + curr_snapshot)
-            # This is a snapshot of beginning of test composed of all the incremental
-            # layers since backup base to comapre with full backup at the end of the test:
-            cmd = "mount -t overlay overlay " + snapshot_mntroot + "/incremental/" + " -oro,lowerdir=" + mid_layers + curr_snapshot
+            # Remount latest snapshot readonly
+            system("mount " + curr_snapshot + " -oremount,ro")
+            mid_layers = ""
+            # Mount old snapshots
+            for i in range(ctx.layers_nr() - 1, -1, -1):
+                mid_layers = upper_mntroot + "/" + str(i) + ":" + mid_layers
+                cmd = "mount -t overlay overlay " + snapshot_mntroot + "/" + str(i) + "/" + " -oro,lowerdir=" + mid_layers + curr_snapshot
+                system(cmd)
+                write_file("/dev/kmsg", cmd);
         else:
             cmd = "mount -t overlay overlay " + union_mntroot + mntopt + ",lowerdir=" + mid_layers + lower_mntroot + ",upperdir=" + upperdir + ",workdir=" + workdir
-        system(cmd)
-        write_file("/dev/kmsg", cmd);
+            system(cmd)
+            write_file("/dev/kmsg", cmd);
         ctx.note_mid_layers(mid_layers)
         ctx.note_upper_layer(upperdir)

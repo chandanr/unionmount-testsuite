@@ -271,10 +271,10 @@ for test in tests:
             sys.exit(1)
 
         if cfg.testing_snapshot() and verify_snapshot:
-            # verify snapshot integrity
-            system("diff -qr --no-dereference " + cfg.backup_mntroot() + "/full/a " + cfg.snapshot_mntroot() + "/incremental/a")
+            # verify snapshots integrity
+            system("diff -qr --no-dereference " + cfg.backup_mntroot() + "/full " + cfg.snapshot_mntroot())
             remount_union(ctx)
-            system("diff -qr --no-dereference " + cfg.backup_mntroot() + "/full/a " + cfg.snapshot_mntroot() + "/incremental/a")
+            system("diff -qr --no-dereference " + cfg.backup_mntroot() + "/full " + cfg.snapshot_mntroot())
 
         # Stop if the kernel is now tainted
         check_not_tainted()

@@ -59,12 +59,8 @@ def mount_union(ctx):
             # This is the snapshot mount where tests are run
             system("mount -t snapshot snapshot " + union_mntroot +
                     " -oupperdir=" + lower_mntroot + ",snapshot=" + curr_snapshot)
-            # This is a snapshot of beginning of test composed of all the incremental
-            # layers since backup base to comapre with full backup at the end of the test:
-            mid_layers = cfg.backup_mntroot() + "/base:"
-            system("mount -t overlay overlay " + snapshot_mntroot + "/incremental/" +
-                    " -oro,lowerdir=" + mid_layers + curr_snapshot)
-            ctx.note_mid_layers(mid_layers)
+            # Remount latest snapshot readonly
+            system("mount " + curr_snapshot + " -oremount,ro")
             ctx.note_upper_fs(lower_mntroot, testdir)
         else:
             system("mount -t overlay overlay " + union_mntroot + mntopt +
