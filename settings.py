@@ -70,8 +70,8 @@ class config:
         self.__lower_mntroot = "/lower"
         self.__upper_mntroot = "/upper"
         self.__union_mntroot = "/mnt"
-        self.__snapshot_mntroot = "/snapshot"
         self.__backup_mntroot = "/backup"
+        self.__snapshot_mntroot = self.__backup_mntroot + "/snapshot"
         self.__testing_snapshot = True
         self.__testing_none = True
         self.__samefs = True

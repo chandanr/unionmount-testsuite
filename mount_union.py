@@ -46,16 +46,24 @@ def mount_union(ctx):
 
         mntopt = " -overify_lower"
         if cfg.testing_snapshot():
-            system("mount -t overlay overlay " + snapshot_mntroot + mntopt +
+            curr_snapshot = snapshot_mntroot + "/" + ctx.curr_layer()
+            try:
+                os.mkdir(curr_snapshot)
+            except OSError:
+                pass
+
+            system("mount -o remount,rw " + lower_mntroot)
+            # This is the latest snapshot of lower_mntroot:
+            system("mount -t overlay overlay " + curr_snapshot + mntopt +
                    ",lowerdir=" + lower_mntroot + ",upperdir=" + upperdir + ",workdir=" + workdir)
+            # This is the snapshot mount where tests are run
             system("mount -t snapshot snapshot " + union_mntroot +
-                    " -oupperdir=" + lower_mntroot + ",snapshot=" + snapshot_mntroot)
-            # The snapshot mounted on snapshot_mntroot is the latest snapshot taken.
+                    " -oupperdir=" + lower_mntroot + ",snapshot=" + curr_snapshot)
             # This is a snapshot of beginning of test composed of all the incremental
             # layers since backup base to comapre with full backup at the end of the test:
             mid_layers = cfg.backup_mntroot() + "/base:"
-            system("mount -t overlay overlay " + cfg.backup_mntroot() + "/snapshot/" +
-                    " -oro,lowerdir=" + mid_layers + snapshot_mntroot)
+            system("mount -t overlay overlay " + snapshot_mntroot + "/incremental/" +
+                    " -oro,lowerdir=" + mid_layers + curr_snapshot)
             ctx.note_mid_layers(mid_layers)
             ctx.note_upper_fs(lower_mntroot, testdir)
         else:
