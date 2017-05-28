@@ -38,6 +38,13 @@ def set_up(ctx):
             pass
 
         try:
+            while system("grep 'overlay " + cfg.backup_mntroot() + "/snapshot' /proc/mounts >/dev/null" +
+                         " && umount " + cfg.backup_mntroot() + "/snapshot"):
+                pass
+        except RuntimeError:
+            pass
+
+        try:
             while system("grep 'backup " + cfg.backup_mntroot() + "' /proc/mounts >/dev/null" +
                          " && umount " + cfg.backup_mntroot()):
                 pass
@@ -191,5 +198,9 @@ def set_up(ctx):
         # Systemd has weird ideas about things
         system("mount --make-private " + cfg.backup_mntroot())
 
+        os.mkdir(cfg.backup_mntroot() + "/full")
+        os.mkdir(cfg.backup_mntroot() + "/base")
+        os.mkdir(cfg.backup_mntroot() + "/snapshot")
+
         # Create a backup copy of lower layer
-        system("cp -a " + lowerdir + " " + cfg.backup_mntroot() + "/")
+        system("cp -a " + lowerdir + " " + cfg.backup_mntroot() + "/full/")

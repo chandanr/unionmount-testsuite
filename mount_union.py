@@ -44,19 +44,22 @@ def mount_union(ctx):
             os.mkdir(upperdir)
             os.mkdir(workdir)
 
-        if cfg.testing_snapshot():
-            system("mount -o remount,rw " + lower_mntroot)
-            mnt = snapshot_mntroot
-        else:
-            mnt = union_mntroot
         mntopt = " -overify_lower"
-        system("mount -t overlay overlay " + mnt + mntopt +
-               ",lowerdir=" + lower_mntroot + ",upperdir=" + upperdir + ",workdir=" + workdir)
         if cfg.testing_snapshot():
+            system("mount -t overlay overlay " + snapshot_mntroot + mntopt +
+                   ",lowerdir=" + lower_mntroot + ",upperdir=" + upperdir + ",workdir=" + workdir)
             system("mount -t snapshot snapshot " + union_mntroot +
                     " -oupperdir=" + lower_mntroot + ",snapshot=" + snapshot_mntroot)
+            # The snapshot mounted on snapshot_mntroot is the latest snapshot taken.
+            # This is a snapshot of beginning of test composed of all the incremental
+            # layers since backup base to comapre with full backup at the end of the test:
+            mid_layers = cfg.backup_mntroot() + "/base:"
+            system("mount -t overlay overlay " + cfg.backup_mntroot() + "/snapshot/" +
+                    " -oro,lowerdir=" + mid_layers + snapshot_mntroot)
+            ctx.note_mid_layers(mid_layers)
             ctx.note_upper_fs(lower_mntroot, testdir)
         else:
+            system("mount -t overlay overlay " + union_mntroot + mntopt +
+                   ",lowerdir=" + lower_mntroot + ",upperdir=" + upperdir + ",workdir=" + workdir)
             ctx.note_upper_fs(upper_mntroot, testdir)
-        ctx.note_lower_layers(lower_mntroot)
         ctx.note_upper_layer(upperdir)
