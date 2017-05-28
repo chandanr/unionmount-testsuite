@@ -273,7 +273,7 @@ for test in tests:
         if cfg.testing_snapshot() and verify_snapshot:
             # verify snapshots integrity
             system("diff -qr --no-dereference " + cfg.backup_mntroot() + "/full " + cfg.snapshot_mntroot())
-            remount_union(ctx)
+            remount_union(ctx, cycle_mount=True)
             system("diff -qr --no-dereference " + cfg.backup_mntroot() + "/full " + cfg.snapshot_mntroot())
 
         # Stop if the kernel is now tainted

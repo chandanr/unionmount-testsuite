@@ -1,10 +1,12 @@
 from tool_box import *
 
-def remount_union(ctx, rotate_upper=False):
+def remount_union(ctx, rotate_upper=False, cycle_mount=False):
     cfg = ctx.config()
     union_mntroot = cfg.union_mntroot()
     lower_mntroot = cfg.lower_mntroot()
     snapshot_mntroot = cfg.snapshot_mntroot()
+    if not cfg.testing_snapshot() or not ctx.remount():
+        cycle_mount = True
 
     if cfg.testing_snapshot():
         # Unmount old snapshots
@@ -15,7 +17,7 @@ def remount_union(ctx, rotate_upper=False):
         check_not_tainted()
 
     if cfg.testing_overlayfs() or cfg.testing_snapshot():
-        if cfg.testing_overlayfs() or not ctx.remount():
+        if cycle_mount:
             system("umount " + cfg.union_mntroot())
             system("echo 3 > /proc/sys/vm/drop_caches")
             check_not_tainted()
@@ -54,13 +56,14 @@ def remount_union(ctx, rotate_upper=False):
             # verify_lower on snapshot mount only with single snapshot test
             if ctx.max_layers() == 0:
                 snapmntopt = snapmntopt + ",verify_lower"
-            if ctx.remount():
-                # This is the snapshot mount where tests are run - remount it to use the new curr_snapshot
-                system("mount -t snapshot snapshot " + union_mntroot + " -oremount,ro,snapshot=" + curr_snapshot)
-                system("mount -t snapshot snapshot " + union_mntroot + " -oremount,rw")
-            else:
+            if cycle_mount:
+                # This is the snapshot mount where tests are run
                 system("mount -t snapshot snapshot " + union_mntroot + snapmntopt +
                         ",upperdir=" + lower_mntroot + ",snapshot=" + curr_snapshot)
+            else:
+                # Cycle remount snapshot mount ro/rw to use the new curr_snapshot
+                system("mount -t snapshot snapshot " + union_mntroot + " -oremount,ro,snapshot=" + curr_snapshot)
+                system("mount -t snapshot snapshot " + union_mntroot + " -oremount,rw")
 
             # Remount latest snapshot readonly
             system("mount " + curr_snapshot + " -oremount,ro")
