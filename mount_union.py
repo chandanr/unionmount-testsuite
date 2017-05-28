@@ -56,9 +56,15 @@ def mount_union(ctx):
             # This is the latest snapshot of lower_mntroot:
             system("mount -t overlay overlay " + curr_snapshot + mntopt +
                    ",lowerdir=" + lower_mntroot + ",upperdir=" + upperdir + ",workdir=" + workdir)
+
+            snapmntopt = " -o rw"
+            # verify_lower on snapshot mount only with single snapshot test
+            if ctx.max_layers() == 0:
+                snapmntopt = snapmntopt + ",verify_lower"
             # This is the snapshot mount where tests are run
-            system("mount -t snapshot snapshot " + union_mntroot +
-                    " -oupperdir=" + lower_mntroot + ",snapshot=" + curr_snapshot)
+            system("mount -t snapshot snapshot " + union_mntroot + snapmntopt +
+                    ",upperdir=" + lower_mntroot + ",snapshot=" + curr_snapshot)
+
             # Remount latest snapshot readonly
             system("mount " + curr_snapshot + " -oremount,ro")
             ctx.note_upper_fs(lower_mntroot, testdir)

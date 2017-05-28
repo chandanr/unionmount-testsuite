@@ -282,6 +282,9 @@ class test_context:
     def layers_nr(self):
         return self.__layers_nr
 
+    def max_layers(self):
+        return self.__max_layers
+
     def have_more_layers(self):
         return self.__layers_nr < self.__max_layers
 
