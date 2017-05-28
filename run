@@ -285,7 +285,7 @@ for test in tests:
         except TestError as te:
             exit_error(str(te))
 
-        if cfg.testing_snapshot():
+        if cfg.testing_snapshot() and cfg.is_verify():
             # verify snapshot integrity
             system("diff -qr --no-dereference " + cfg.backup_mntroot() + "/full/a " + cfg.snapshot_mntroot() + "/incremental/a")
             remount_union(ctx)
