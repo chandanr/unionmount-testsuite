@@ -48,6 +48,9 @@ def remount_union(ctx, rotate_upper=False, cycle_mount=False):
                     # Create a backup copy of lower layer for comparing with snapshotat the end of the test run
                     system("cp -a " + lower_mntroot + "/a " + cfg.backup_mntroot() + "/full/" + ctx.curr_layer() + "/")
 
+            if not cfg.is_verify():
+                # don't copy data to snapshot when not verifying snapshot content
+                mntopt = mntopt + ",consistent_fd=on"
             snapmntopt = " -o rw"
             # redirect_dir on snapshot mount only with single snapshot test
             if ctx.max_layers() == 0:

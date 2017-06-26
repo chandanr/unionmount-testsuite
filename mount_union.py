@@ -52,6 +52,9 @@ def mount_union(ctx):
             except OSError:
                 pass
 
+            if not cfg.is_verify():
+                # don't copy data to snapshot when not verifying snapshot content
+                mntopt = mntopt + ",consistent_fd=on"
             system("mount -o remount,rw " + lower_mntroot)
             # This is the latest snapshot of lower_mntroot:
             system("mount -t overlay overlay " + curr_snapshot + mntopt +
