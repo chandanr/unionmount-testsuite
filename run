@@ -278,9 +278,9 @@ for test in tests:
 
         if cfg.testing_snapshot():
             # verify snapshot integrity
-            system("diff -qr --no-dereference " + cfg.backup_mntroot() + "/full/ " + cfg.backup_mntroot() + "/snapshot/")
+            system("diff -qr --no-dereference " + cfg.backup_mntroot() + "/full/a " + cfg.snapshot_mntroot() + "/incremental/a")
             remount_union(ctx)
-            system("diff -qr --no-dereference " + cfg.backup_mntroot() + "/full/ " + cfg.backup_mntroot() + "/snapshot/")
+            system("diff -qr --no-dereference " + cfg.backup_mntroot() + "/full/a " + cfg.snapshot_mntroot() + "/incremental/a")
 
         # Stop if the kernel is now tainted
         check_not_tainted()

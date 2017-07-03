@@ -27,9 +27,7 @@ def set_up(ctx):
         except RuntimeError:
             pass
 
-    mnt = cfg.union_mntroot()
     if cfg.testing_snapshot():
-        mnt = cfg.snapshot_mntroot()
         try:
             while system("grep 'snapshot " + cfg.union_mntroot() + "' /proc/mounts >/dev/null" +
                          " && umount " + cfg.union_mntroot()):
@@ -38,8 +36,8 @@ def set_up(ctx):
             pass
 
         try:
-            while system("grep 'overlay " + cfg.backup_mntroot() + "/snapshot' /proc/mounts >/dev/null" +
-                         " && umount " + cfg.backup_mntroot() + "/snapshot"):
+            while system("grep 'overlay " + cfg.snapshot_mntroot() + "/' /proc/mounts >/dev/null" +
+                         " && umount " + cfg.snapshot_mntroot() + "/*/ 2>/dev/null"):
                 pass
         except RuntimeError:
             pass
@@ -51,21 +49,15 @@ def set_up(ctx):
         except RuntimeError:
             pass
 
+    else:
+        try:
+            while system("grep 'overlay " + cfg.union_mntroot() + "' /proc/mounts >/dev/null" +
+                         " && umount " + cfg.union_mntroot()):
+                pass
+        except RuntimeError:
+            pass
+
     if cfg.testing_overlayfs() or cfg.testing_snapshot():
-        try:
-            while system("grep 'overlay " + mnt + "' /proc/mounts >/dev/null" +
-                         " && umount " + mnt):
-                pass
-        except RuntimeError:
-            pass
-
-        try:
-            while system("grep 'lower_layer " + cfg.base_mntroot() + "' /proc/mounts >/dev/null" +
-                         " && umount " + cfg.base_mntroot()):
-                pass
-        except RuntimeError:
-            pass
-
         try:
             while system("grep 'lower_layer " + lower_mntroot + "' /proc/mounts >/dev/null" +
                          " && umount " + lower_mntroot):
@@ -81,7 +73,6 @@ def set_up(ctx):
         except RuntimeError:
             pass
 
-    if cfg.is_samefs():
         try:
             while system("grep 'lower_layer " + cfg.base_mntroot() + "' /proc/mounts >/dev/null" +
                          " && umount " + cfg.base_mntroot()):
@@ -89,6 +80,7 @@ def set_up(ctx):
         except RuntimeError:
             pass
 
+    if cfg.is_samefs():
         # Create base fs for both lower and upper
         base_mntroot = cfg.base_mntroot()
         system("mount " + base_mntroot + " 2>/dev/null"
@@ -200,7 +192,8 @@ def set_up(ctx):
 
         os.mkdir(cfg.backup_mntroot() + "/full")
         os.mkdir(cfg.backup_mntroot() + "/base")
-        os.mkdir(cfg.backup_mntroot() + "/snapshot")
+        os.mkdir(cfg.snapshot_mntroot())
+        os.mkdir(cfg.snapshot_mntroot() + "/incremental")
 
         # Create a backup copy of lower layer
         system("cp -a " + lowerdir + " " + cfg.backup_mntroot() + "/full/")
