@@ -6,6 +6,8 @@ def unmount_union(ctx):
     check_not_tainted()
 
     if cfg.testing_snapshot():
+        system("umount " + cfg.backup_mntroot() + "/snapshot/")
+        check_not_tainted()
         system("umount " + cfg.backup_mntroot())
         check_not_tainted()
         system("umount " + cfg.snapshot_mntroot())
