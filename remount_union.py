@@ -12,12 +12,12 @@ def remount_union(ctx, rotate_upper=False):
         except RuntimeError:
             pass
         check_not_tainted()
-
-    if cfg.testing_overlayfs() or cfg.testing_snapshot():
+    elif cfg.testing_overlayfs():
         system("umount " + cfg.union_mntroot())
         system("echo 3 > /proc/sys/vm/drop_caches")
         check_not_tainted()
 
+    if cfg.testing_overlayfs() or cfg.testing_snapshot():
         upper_mntroot = cfg.upper_mntroot()
         if rotate_upper and ctx.have_more_layers():
             # current upper is added to head of overlay mid layers or
@@ -48,9 +48,9 @@ def remount_union(ctx, rotate_upper=False):
             system(cmd)
             if cfg.is_verbose():
                 write_kmsg(cmd);
-            # This is the snapshot mount where tests are run
+            # This is the snapshot mount where tests are run - remount it to use the new curr_snapshot
             system("mount -t snapshot snapshot " + union_mntroot +
-                    " -oupperdir=" + lower_mntroot + ",snapshot=" + curr_snapshot)
+                    " -oremount,upperdir=" + lower_mntroot + ",snapshot=" + curr_snapshot)
             # This is a snapshot of beginning of test composed of all the incremental
             # layers since backup base to comapre with full backup at the end of the test:
             cmd = "mount -t overlay overlay " + snapshot_mntroot + "/incremental/" + " -oro,lowerdir=" + mid_layers + curr_snapshot
