@@ -51,13 +51,19 @@ def remount_union(ctx, rotate_upper=False):
             system(cmd)
             if cfg.is_verbose():
                 write_kmsg(cmd);
+
+            snapmntopt = " -o rw"
+            # redirect_dir on snapshot mount only with single snapshot test
+            if ctx.max_layers() == 0:
+                snapmntopt = snapmntopt + ",redirect_dir=on"
             if ctx.remount():
                 # This is the snapshot mount where tests are run - remount it to use the new curr_snapshot
                 system("mount -t snapshot snapshot " + union_mntroot + " -oremount,ro,snapshot=" + curr_snapshot)
                 system("mount -t snapshot snapshot " + union_mntroot + " -oremount,rw")
             else:
-                system("mount -t snapshot snapshot " + union_mntroot +
-                        " -oupperdir=" + lower_mntroot + ",snapshot=" + curr_snapshot)
+                system("mount -t snapshot snapshot " + union_mntroot + snapmntopt +
+                        ",upperdir=" + lower_mntroot + ",snapshot=" + curr_snapshot)
+
             # Remount latest snapshot readonly
             system("mount " + curr_snapshot + " -oremount,ro")
             mid_layers = ""
