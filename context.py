@@ -532,17 +532,15 @@ class test_context:
         if self.skip_layer_test():
             pass
         elif dev == self.lower_fs():
-            if dentry.is_dir():
-                raise TestError(name + ": Directory unexpectedly on lower filesystem")
+            # Overlayfs never returns st_dev corresponding to any of
+            # the lower layers
+            raise TestError(name + ": File unexpectedly has lowerfs dev id")
         elif dentry.is_dir():
             if dev != self.upper_dir_fs():
                 raise TestError(name + ": Directory not on union layer")
         elif dev == self.upper_fs() and not dentry.on_upper():
             raise TestError(name + ": File unexpectedly on upper layer")
-        elif dev != self.upper_fs() and dev != self.upper_dir_fs() and self.config().is_samefs():
-            # For samefs, file is on overlay dev
-            # TODO: for non-samefs, check file dev matches pseudo dev
-            # and that pseduo dev != real dev
+        elif dev != self.upper_dir_fs() and self.config().is_samefs():
             raise TestError(name + ": File on unexpected layer")
 
         if dentry.is_sym() and dentry not in symlinks:
